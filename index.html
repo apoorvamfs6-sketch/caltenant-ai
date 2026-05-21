@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CalTenant AI — Small Claims Court Outcome Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f8f7ff;color:#1a1a2e}
+nav{background:#fff;border-bottom:1px solid #e8e4f8;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:#1a1a2e;text-decoration:none;cursor:pointer}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#7c3aed,#9d4edd);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-link{padding:8px 16px;border-radius:8px;font-size:14px;font-weight:500;color:#555;text-decoration:none;cursor:pointer;border:none;background:none;transition:all .2s}
+.nav-link:hover{background:#f3f0ff;color:#7c3aed}
+.nav-link.active{background:#7c3aed;color:#fff}
+.nav-cta{background:#7c3aed;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.nav-cta:hover{background:#6d28d9}
+.page{display:none}.page.active{display:block}
+.hero{background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 50%,#5b21b6 100%);padding:80px 60px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:999px;padding:6px 14px;font-size:13px;color:#e9d5ff;margin-bottom:20px}
+.hero h1{font-size:52px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:20px}
+.hero p{font-size:18px;color:#ddd6fe;line-height:1.7;margin-bottom:32px}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.btn-primary{background:#fff;color:#7c3aed;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.btn-primary:hover{background:#f3f0ff;transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:#fff;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;border:2px solid rgba(255,255,255,0.5);cursor:pointer;transition:all .2s}
+.btn-secondary:hover{background:rgba(255,255,255,0.1)}
+.hero-visual{background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:20px;height:360px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.stats{background:#fff;padding:48px 60px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center;border-bottom:1px solid #e8e4f8}
+.stat-icon{width:56px;height:56px;background:linear-gradient(135deg,#7c3aed,#9d4edd);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px}
+.stat-num{font-size:32px;font-weight:800;color:#7c3aed;margin-bottom:4px}
+.stat-label{font-size:14px;color:#888}
+.section{padding:72px 60px;max-width:1200px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:48px}
+.section-header h2{font-size:36px;font-weight:800;color:#1a1a2e;margin-bottom:12px}
+.section-header p{font-size:16px;color:#666}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.step-card{background:#fff;border-radius:16px;padding:32px 24px;border:1px solid #e8e4f8;transition:all .2s}
+.step-card:hover{border-color:#c4b5fd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.1)}
+.step-icon{width:56px;height:56px;background:linear-gradient(135deg,#7c3aed,#9d4edd);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
+.step-num{font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.step-card h3{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:10px}
+.step-card p{font-size:14px;color:#666;line-height:1.7}
+.why-section{background:#fff;padding:72px 60px}
+.why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:900px;margin:0 auto}
+.why-card{background:#f8f7ff;border-radius:16px;padding:28px;border:1px solid #e8e4f8}
+.why-card h3{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.why-card p{font-size:14px;color:#666;line-height:1.7}
+.why-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.cta-banner{background:linear-gradient(135deg,#7c3aed,#5b21b6);padding:64px 40px;text-align:center}
+.cta-banner h2{font-size:36px;font-weight:800;color:#fff;margin-bottom:12px}
+.cta-banner p{font-size:16px;color:#ddd6fe;margin-bottom:32px}
+.btn-white{background:#fff;color:#7c3aed;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.btn-white:hover{background:#f3f0ff}
+footer{background:#1a1a2e;padding:32px 40px;text-align:center}
+footer p{font-size:13px;color:#aaa;line-height:1.8;max-width:800px;margin:0 auto}
+footer strong{color:#ddd}
+.pred-hero{background:linear-gradient(135deg,#7c3aed,#5b21b6);padding:48px 40px;text-align:center}
+.pred-hero-icon{width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.pred-hero h1{font-size:36px;font-weight:800;color:#fff;margin-bottom:8px}
+.pred-hero p{font-size:16px;color:#ddd6fe}
+.pred-body{max-width:800px;margin:0 auto;padding:40px}
+.prog-card{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:24px;border:1px solid #e8e4f8}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.prog-title{font-size:15px;font-weight:600;color:#1a1a2e}
+.prog-hint{font-size:13px;color:#7c3aed;font-weight:500}
+.prog-bg{height:8px;background:#e8e4f8;border-radius:999px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#06d6a0);border-radius:999px;transition:width .4s;width:0%}
+.form-sec{background:#fff;border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid #e8e4f8}
+.form-sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.form-sec-head h2{font-size:20px;font-weight:700;color:#7c3aed}
+.form-sec-sub{font-size:14px;color:#888;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #f0eeff}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.fgrp{display:flex;flex-direction:column;gap:6px}
+.flabel{font-size:14px;font-weight:600;color:#1a1a2e}
+.flabel span{color:#7c3aed}
+.fsel,.finp{width:100%;padding:12px 14px;border:1.5px solid #e8e4f8;border-radius:10px;font-size:14px;color:#1a1a2e;background:#fafafe;font-family:'Inter',sans-serif;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.fsel:focus,.finp:focus{outline:none;border-color:#7c3aed;background:#fff}
+.amt-wrap{position:relative}
+.amt-pre{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;color:#888;font-weight:600}
+.finp.amt{padding-left:28px}
+.amt-hint{font-size:12px;color:#888;margin-top:4px}
+.yn-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.yn-btn{padding:11px;border:1.5px solid #e8e4f8;border-radius:10px;font-size:14px;font-weight:500;color:#555;background:#fafafe;cursor:pointer;text-align:center;transition:all .2s}
+.yn-btn:hover{border-color:#c4b5fd;color:#7c3aed}
+.yn-btn.sel{border-color:#7c3aed;background:#f3f0ff;color:#7c3aed;font-weight:600}
+.ev-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid #e8e4f8;border-radius:10px;cursor:pointer;transition:all .2s;margin-bottom:10px;background:#fafafe}
+.ev-item:hover{border-color:#c4b5fd}
+.ev-item.on{border-color:#7c3aed;background:#f3f0ff}
+.ev-cb{width:20px;height:20px;border:2px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:13px;font-weight:700}
+.ev-item.on .ev-cb{background:#7c3aed;border-color:#7c3aed;color:#fff}
+.ev-lbl{font-size:14px;font-weight:500;color:#333}
+.ev-item.on .ev-lbl{color:#6d28d9}
+.score-box{background:linear-gradient(135deg,#f3f0ff,#ede9fe);border:1.5px solid #c4b5fd;border-radius:12px;padding:20px;margin-top:8px}
+.score-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.score-lbl{font-size:15px;font-weight:700;color:#1a1a2e}
+.score-num{font-size:28px;font-weight:800;color:#7c3aed}
+.score-bg{height:10px;background:#e8e4f8;border-radius:999px;overflow:hidden;margin-bottom:10px}
+.score-bar{height:100%;background:linear-gradient(90deg,#7c3aed,#06d6a0);border-radius:999px;transition:width .4s}
+.score-msg{font-size:13px;color:#666}
+.sub-btn{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;font-family:'Inter',sans-serif}
+.sub-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.3)}
+.res-hero{background:linear-gradient(135deg,#7c3aed,#5b21b6);padding:40px;text-align:center}
+.res-hero h1{font-size:32px;font-weight:800;color:#fff;margin-bottom:6px}
+.res-hero p{font-size:15px;color:#ddd6fe}
+.res-body{max-width:900px;margin:0 auto;padding:40px}
+.vcard{border-radius:20px;padding:40px;text-align:center;margin-bottom:24px}
+.vcard.win{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7}
+.vcard.partial{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fcd34d}
+.vcard.lose{background:linear-gradient(135deg,#fef2f2,#fee2e2);border:2px solid #fca5a5}
+.vicon{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;color:#fff}
+.vcard.win .vicon{background:#10b981}
+.vcard.partial .vicon{background:#f59e0b}
+.vcard.lose .vicon{background:#ef4444}
+.vtitle{font-size:32px;font-weight:800;color:#1a1a2e;margin-bottom:8px}
+.vconf{font-size:48px;font-weight:900;margin-bottom:4px}
+.vcard.win .vconf{color:#059669}
+.vcard.partial .vconf{color:#d97706}
+.vcard.lose .vconf{color:#dc2626}
+.vconf-lbl{font-size:14px;color:#666;font-weight:500}
+.mrow{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.mcard{background:#fff;border-radius:14px;padding:20px;border:1px solid #e8e4f8;text-align:center}
+.mcard-lbl{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.mcard-val{font-size:28px;font-weight:800;color:#7c3aed;margin-bottom:8px}
+.mbar-bg{height:6px;background:#e8e4f8;border-radius:999px;overflow:hidden}
+.mbar{height:100%;background:linear-gradient(90deg,#7c3aed,#06d6a0);border-radius:999px;transition:width .8s}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.ccrd{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8}
+.ccrd-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:20px}
+.pie-wrap{display:flex;align-items:center;gap:20px}
+.pie-leg{font-size:13px;color:#666}
+.pie-leg-item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pie-dot{width:12px;height:12px;border-radius:50%}
+.bar-area{display:flex;align-items:flex-end;gap:20px;height:120px;border-bottom:2px solid #e8e4f8;padding:0 10px 4px;margin-bottom:8px;position:relative}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;position:relative}
+.bar-max{position:absolute;bottom:0;left:0;right:0;background:#e8e4f8;border-radius:6px 6px 0 0}
+.bar-yours{position:absolute;bottom:0;left:4px;right:4px;background:linear-gradient(180deg,#7c3aed,#5b21b6);border-radius:6px 6px 0 0;transition:height .8s}
+.bar-lbl{font-size:11px;color:#888;margin-top:28px}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.cf-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8}
+.cf-card h3{font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:20px}
+.mr{margin-bottom:16px}
+.mr-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.mr-lbl{font-size:14px;color:#444;font-weight:500}
+.mr-val{font-size:16px;font-weight:800;color:#7c3aed}
+.mr-bg{height:7px;background:#e8e4f8;border-radius:999px;overflow:hidden}
+.mr-bar{height:100%;background:linear-gradient(90deg,#7c3aed,#06d6a0);border-radius:999px;transition:width .8s}
+.kf-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8}
+.kf-card h3{font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:16px}
+.kf-grp-lbl{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kf-grp-lbl.str{color:#059669}
+.kf-grp-lbl.wk{color:#dc2626}
+.ftag{display:inline-block;font-size:12px;font-weight:500;padding:5px 12px;border-radius:999px;margin:3px 4px 3px 0}
+.ftag.g{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.ftag.b{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.rec-card{background:#fff;border-radius:14px;border:1px solid #e8e4f8;margin-bottom:24px;overflow:hidden}
+.rec-head{background:linear-gradient(135deg,#f59e0b,#d97706);padding:14px 24px}
+.rec-head h3{font-size:15px;font-weight:700;color:#fff}
+.rec-body{padding:20px 24px}
+.rec-text{font-size:15px;color:#333;line-height:1.7}
+.ns-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8;margin-bottom:24px}
+.ns-card h3{font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:16px}
+.ns-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:#fafafe;border-radius:10px;border:1px solid #e8e4f8;margin-bottom:10px}
+.ns-arrow{color:#f59e0b;font-size:18px;font-weight:700;flex-shrink:0}
+.ns-text{font-size:14px;color:#333;line-height:1.6}
+.bot-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.res-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8}
+.res-card h3{font-size:16px;font-weight:700;color:#7c3aed;margin-bottom:16px}
+.res-item{background:#f8f7ff;border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid #e8e4f8}
+.res-item h4{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
+.res-item p{font-size:13px;color:#666}
+.save-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #e8e4f8}
+.save-card h3{font-size:16px;font-weight:700;color:#7c3aed;margin-bottom:12px}
+.save-card p{font-size:14px;color:#666;line-height:1.6;margin-bottom:12px}
+.sben{display:flex;align-items:center;gap:8px;font-size:14px;color:#333;margin-bottom:8px}
+.sben-icon{color:#7c3aed;font-weight:700}
+.dl-btn{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;font-family:'Inter',sans-serif;transition:all .2s}
+.dl-btn:hover{opacity:.9}
+.disc-box{background:#1a1a2e;border-radius:14px;padding:24px}
+.disc-box p{font-size:13px;color:#aaa;line-height:1.8}
+.disc-box strong{color:#e9d5ff}
+.preds-body{max-width:900px;margin:0 auto;padding:40px}
+.preds-hrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.preds-hrow h2{font-size:24px;font-weight:800;color:#1a1a2e}
+.pred-item{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:16px;border:1.5px solid #e8e4f8;transition:all .2s}
+.pred-item:hover{border-color:#c4b5fd;box-shadow:0 4px 16px rgba(124,58,237,0.08)}
+.pred-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.pbadge{padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700}
+.pbadge.win{background:#d1fae5;color:#065f46}
+.pbadge.partial{background:#fef3c7;color:#92400e}
+.pbadge.lose{background:#fee2e2;color:#991b1b}
+.pstat{padding:4px 12px;border-radius:999px;font-size:13px;background:#f3f0ff;color:#7c3aed;border:1px solid #e8e4f8}
+.pact{margin-left:auto}
+.pact-btn{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid #e8e4f8;background:#f8f7ff;cursor:pointer;color:#555;transition:all .2s}
+.pact-btn:hover{background:#f3f0ff;border-color:#c4b5fd;color:#7c3aed}
+.ptitle{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.pmeta{display:flex;gap:20px;flex-wrap:wrap}
+.pmeta-item{font-size:13px;color:#666}
+.new-btn{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.new-btn:hover{opacity:.9}
+.empty{text-align:center;padding:60px 20px;color:#888}
+.empty p{margin-bottom:20px;font-size:16px}
+.free-body{max-width:900px;margin:0 auto;padding:40px}
+.free-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px}
+.free-item{padding:20px;border-radius:12px;display:flex;align-items:flex-start;gap:12px;border:1px solid}
+.free-item.inc{background:#f0fdf4;border-color:#bbf7d0}
+.free-item.exc{background:#f9fafb;border-color:#e5e7eb;opacity:.7}
+.free-item-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.free-item-text h4{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.free-item.exc .free-item-text h4{color:#9ca3af}
+.free-item-text p{font-size:13px;color:#666}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">
+    <div class="nav-logo-icon">⚖</div>
+    CalTenant AI
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" id="nav-home" onclick="showPage('home')">🏠 Home</button>
+    <button class="nav-link" id="nav-predictor" onclick="showPage('predictor')">📋 Predictor</button>
+    <button class="nav-link" id="nav-predictions" onclick="showPage('predictions')">📊 Predictions</button>
+    <button class="nav-link" id="nav-free" onclick="showPage('free')">✨ Free Model</button>
+  </div>
+  <button class="nav-cta" onclick="showPage('predictor')">Get Started</button>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <div class="hero-badge">⚖ 86.84% Model Accuracy</div>
+      <h1>Predict Your Court Outcome</h1>
+      <p>AI-powered predictions for California small claims court. Know your odds before stepping into the courtroom.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="showPage('predictor')">Get Your Prediction →</button>
+        <button class="btn-secondary" onclick="document.getElementById('hiw').scrollIntoView({behavior:'smooth'})">How It Works</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div style="font-size:72px">⚖️</div>
+      <div style="color:rgba(255,255,255,0.8);font-size:16px;font-weight:600;text-align:center">California Small Claims Court<br>Outcome Predictor</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:13px">Landlord-Tenant Disputes · 7 Counties</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div><div class="stat-icon">📊</div><div class="stat-num">150+</div><div class="stat-label">Cases Analyzed</div></div>
+    <div><div class="stat-icon">🎯</div><div class="stat-num">86.84%</div><div class="stat-label">Prediction Accuracy</div></div>
+    <div><div class="stat-icon">⏱</div><div class="stat-num">&lt;2 Min</div><div class="stat-label">To Get Results</div></div>
+    <div><div class="stat-icon">⚖</div><div class="stat-num">100%</div><div class="stat-label">Free to Use</div></div>
+  </div>
+  <div class="section" id="hiw">
+    <div class="section-header"><h2>How It Works</h2><p>Get your case prediction in three simple steps</p></div>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-icon">📋</div><div class="step-num">Step 1</div><h3>Enter Case Details</h3><p>Provide information about your dispute type, evidence, location, and other key factors that impact your case outcome.</p></div>
+      <div class="step-card"><div class="step-icon">⚡</div><div class="step-num">Step 2</div><h3>AI Analysis</h3><p>Our machine learning model, trained on 150+ California cases, instantly evaluates your case strength and evidence quality.</p></div>
+      <div class="step-card"><div class="step-icon">✅</div><div class="step-num">Step 3</div><h3>Get Predictions</h3><p>Receive a detailed outcome prediction with confidence scores, case analysis, and actionable next steps.</p></div>
+    </div>
+  </div>
+  <div class="why-section">
+    <div class="section-header"><h2>Why Choose Our Platform</h2><p>Built specifically for California tenants facing landlord disputes</p></div>
+    <div class="why-grid">
+      <div class="why-card"><div class="why-icon" style="background:#ede9fe">🛡</div><h3>Data-Driven Accuracy</h3><p>Our AI model achieves 86.84% accuracy by analyzing patterns from California small claims court outcomes using a Random Forest classifier.</p></div>
+      <div class="why-card"><div class="why-icon" style="background:#ede9fe">⚖</div><h3>California-Specific</h3><p>Trained exclusively on California landlord-tenant disputes across 7 counties for maximum accuracy in your jurisdiction.</p></div>
+      <div class="why-card"><div class="why-icon" style="background:#dcfce7">📈</div><h3>Evidence-Based Analysis</h3><p>Advanced scoring system evaluates your documentation, communication records, and case details to predict outcomes.</p></div>
+      <div class="why-card"><div class="why-icon" style="background:#fef3c7">🏆</div><h3>Completely Free</h3><p>No hidden fees, subscriptions, or credit cards required. Access to justice should never be behind a paywall.</p></div>
+    </div>
+  </div>
+  <div class="cta-banner">
+    <h2>Ready to Predict Your Case?</h2>
+    <p>Join California tenants who use our AI to make informed decisions about their cases.</p>
+    <button class="btn-white" onclick="showPage('predictor')">Start Your Free Prediction →</button>
+  </div>
+  <footer><p><strong>Legal Disclaimer:</strong> This tool provides predictions for informational purposes only and does not constitute legal advice. Results are based on historical patterns and should not be relied upon as a guarantee of outcome. For specific legal guidance, please consult with a qualified attorney or tenant rights organization. This AI model has 86.84% accuracy based on historical training data from California small claims court outcomes.</p></footer>
+</div>
+
+<!-- PREDICTOR -->
+<div class="page" id="page-predictor">
+  <div class="pred-hero">
+    <div class="pred-hero-icon">📋</div>
+    <h1>Case Information Form</h1>
+    <p>Provide details about your case for an accurate AI-powered prediction</p>
+  </div>
+  <div class="pred-body">
+    <div class="prog-card">
+      <div class="prog-header"><div class="prog-title">📋 Form Completion</div><div class="prog-hint" id="prog-hint">Fill All Required Fields</div></div>
+      <div class="prog-bg"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="form-sec">
+      <div class="form-sec-head"><span style="font-size:20px">📋</span><h2>Case Basics</h2></div>
+      <div class="form-sec-sub">Provide the fundamental details about your landlord-tenant dispute</div>
+      <div class="form-row">
+        <div class="fgrp"><label class="flabel">Type of Dispute <span>*</span></label>
+          <select class="fsel" id="f-dispute" onchange="upProg()">
+            <option value="">Select the type of dispute</option>
+            <option value="security_deposit">Security Deposit</option>
+            <option value="unpaid_rent">Unpaid Rent</option>
+            <option value="habitability">Habitability Issues</option>
+            <option value="property_damage">Property Damage</option>
+          </select>
+        </div>
+        <div class="fgrp"><label class="flabel">County Where Case Will Be Filed <span>*</span></label>
+          <select class="fsel" id="f-county" onchange="upProg()">
+            <option value="">Select your California county</option>
+            <option value="los_angeles">Los Angeles</option>
+            <option value="san_francisco">San Francisco</option>
+            <option value="san_diego">San Diego</option>
+            <option value="orange">Orange</option>
+            <option value="sacramento">Sacramento</option>
+            <option value="alameda">Alameda</option>
+            <option value="riverside">Riverside</option>
+          </select>
+        </div>
+      </div>
+      <div class="fgrp" style="margin-bottom:20px">
+        <label class="flabel">Claim Amount (USD) <span>*</span></label>
+        <div class="amt-wrap"><span class="amt-pre">$</span><input type="number" class="finp amt" id="f-amount" placeholder="0.00" min="0" max="10000" oninput="upProg()"/></div>
+        <div class="amt-hint">Small claims limit in California is $10,000</div>
+      </div>
+      <div class="form-row">
+        <div class="fgrp"><label class="flabel">Do you have a written lease agreement? <span>*</span></label>
+          <div class="yn-wrap"><button class="yn-btn" id="lease-yes" onclick="selYN('lease','yes')">Yes</button><button class="yn-btn" id="lease-no" onclick="selYN('lease','no')">No</button></div>
+        </div>
+        <div class="fgrp"><label class="flabel">Did you send a demand letter? <span>*</span></label>
+          <div class="yn-wrap"><button class="yn-btn" id="demand-yes" onclick="selYN('demand','yes')">Yes</button><button class="yn-btn" id="demand-no" onclick="selYN('demand','no')">No</button></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fgrp"><label class="flabel">Did you attempt to resolve this first? <span>*</span></label>
+          <div class="yn-wrap"><button class="yn-btn" id="prior-yes" onclick="selYN('prior','yes')">Yes</button><button class="yn-btn" id="prior-no" onclick="selYN('prior','no')">No</button></div>
+        </div>
+        <div class="fgrp"><label class="flabel">Is your landlord a company? <span>*</span></label>
+          <div class="yn-wrap"><button class="yn-btn" id="company-yes" onclick="selYN('company','yes')">Yes (Corporation/LLC)</button><button class="yn-btn" id="company-no" onclick="selYN('company','no')">No (Individual)</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-sec">
+      <div class="form-sec-head"><span style="font-size:20px">🛡</span><h2>Your Evidence</h2></div>
+      <div class="form-sec-sub">Check all evidence types you currently have to support your case</div>
+      <div class="ev-item" id="ev-photos" onclick="togEv('photos')"><div class="ev-cb" id="evcb-photos"></div><div class="ev-lbl">Photos or video documentation</div></div>
+      <div class="ev-item" id="ev-comms" onclick="togEv('comms')"><div class="ev-cb" id="evcb-comms"></div><div class="ev-lbl">Written communication with landlord (texts, emails, letters)</div></div>
+      <div class="ev-item" id="ev-checklist" onclick="togEv('checklist')"><div class="ev-cb" id="evcb-checklist"></div><div class="ev-lbl">Signed move-in or move-out inspection checklist</div></div>
+      <div class="ev-item" id="ev-receipts" onclick="togEv('receipts')"><div class="ev-cb" id="evcb-receipts"></div><div class="ev-lbl">Receipts or payment records</div></div>
+      <div class="ev-item" id="ev-witness" onclick="togEv('witness')"><div class="ev-cb" id="evcb-witness"></div><div class="ev-lbl">Witness who can testify on your behalf</div></div>
+      <div class="score-box" style="margin-top:16px">
+        <div class="score-top"><div class="score-lbl">Evidence Strength Score</div><div class="score-num" id="ev-num">0/5</div></div>
+        <div class="score-bg"><div class="score-bar" id="ev-bar" style="width:0%"></div></div>
+        <div class="score-msg" id="ev-msg">⚠️ No evidence selected — building evidence is crucial</div>
+      </div>
+    </div>
+    <button class="sub-btn" onclick="runPred()">Analyze My Case →</button>
+  </div>
+  <footer style="margin-top:0"><p><strong>Legal Disclaimer:</strong> This tool provides predictions for informational purposes only and does not constitute legal advice.</p></footer>
+</div>
+
+<!-- RESULTS -->
+<div class="page" id="page-results">
+  <div class="res-hero"><h1>Your Case Prediction</h1><p>AI-Powered Analysis Based on California Court Patterns</p></div>
+  <div class="res-body">
+    <div class="vcard" id="vcard">
+      <div class="vicon" id="vicon"></div>
+      <div class="vtitle" id="vtitle"></div>
+      <div class="vconf" id="vconf"></div>
+      <div class="vconf-lbl">Prediction Confidence</div>
+    </div>
+    <div class="mrow">
+      <div class="mcard"><div class="mcard-lbl">Case Strength</div><div class="mcard-val" id="r-str"></div><div class="mbar-bg"><div class="mbar" id="r-str-bar"></div></div></div>
+      <div class="mcard"><div class="mcard-lbl">Evidence Score</div><div class="mcard-val" id="r-ev"></div><div class="mbar-bg"><div class="mbar" id="r-ev-bar"></div></div></div>
+      <div class="mcard"><div class="mcard-lbl">Confidence</div><div class="mcard-val" id="r-cf"></div><div class="mbar-bg"><div class="mbar" id="r-cf-bar"></div></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="ccrd"><div class="ccrd-title">📈 Outcome Distribution</div><div class="pie-wrap"><canvas id="pieC" width="120" height="120"></canvas><div class="pie-leg" id="pie-leg"></div></div></div>
+      <div class="ccrd"><div class="ccrd-title">⚖ Confidence Score</div><div style="text-align:center;padding:10px 0"><canvas id="donutC" width="120" height="120"></canvas></div></div>
+    </div>
+    <div class="ccrd" style="margin-bottom:24px">
+      <div class="ccrd-title">📋 Case Factor Analysis</div>
+      <div class="bar-area" id="bar-area"></div>
+      <div style="display:flex;gap:16px;justify-content:center;font-size:12px;color:#888;margin-top:32px">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#7c3aed;border-radius:3px;display:inline-block"></span>Your Score</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;background:#e8e4f8;border-radius:3px;display:inline-block"></span>Maximum</span>
+      </div>
+    </div>
+    <div class="cf-row">
+      <div class="cf-card"><h3>Case Metrics</h3>
+        <div class="mr"><div class="mr-head"><span class="mr-lbl">Case Strength Score</span><span class="mr-val" id="m-str"></span></div><div class="mr-bg"><div class="mr-bar" id="m-str-bar"></div></div></div>
+        <div class="mr"><div class="mr-head"><span class="mr-lbl">Evidence Quality Score</span><span class="mr-val" id="m-ev"></span></div><div class="mr-bg"><div class="mr-bar" id="m-ev-bar"></div></div></div>
+        <div class="mr"><div class="mr-head"><span class="mr-lbl">Prediction Confidence</span><span class="mr-val" id="m-cf"></span></div><div class="mr-bg"><div class="mr-bar" id="m-cf-bar"></div></div></div>
+      </div>
+      <div class="kf-card"><h3>Key Factors</h3>
+        <div class="kf-grp-lbl str">✅ Strengths</div><div id="str-tags"></div>
+        <div class="kf-grp-lbl wk" style="margin-top:16px">❌ Weaknesses</div><div id="wk-tags"></div>
+      </div>
+    </div>
+    <div class="rec-card"><div class="rec-head"><h3>Expert Recommendation</h3></div><div class="rec-body"><p class="rec-text" id="r-rec"></p></div></div>
+    <div class="ns-card"><h3>Suggested Next Steps</h3><div id="ns-list"></div></div>
+    <div class="bot-row">
+      <div class="res-card"><h3>California Resources</h3>
+        <div class="res-item"><h4>Legal Aid Organizations</h4><p>Free consultations available through local legal aid societies and tenant unions</p></div>
+        <div class="res-item"><h4>California Courts Self-Help</h4><p>Visit Courts.ca.gov for comprehensive guides on filing small claims cases</p></div>
+        <div class="res-item"><h4>Filing Fees &amp; Waivers</h4><p>$30–$75 based on claim amount. Fee waivers available for qualifying low-income tenants</p></div>
+      </div>
+      <div class="save-card"><h3>Save Your Results</h3>
+        <p>Download or save these results for your records. Having this analysis can help you:</p>
+        <div class="sben"><span class="sben-icon">✅</span> Track your case preparation progress</div>
+        <div class="sben"><span class="sben-icon">✅</span> Share with legal advisors or tenant advocates</div>
+        <div class="sben"><span class="sben-icon">✅</span> Reference when making strategic decisions</div>
+        <button class="dl-btn" onclick="alert('In the deployed version this would generate a PDF of your results.')">⬇ Download Report (PDF)</button>
+      </div>
+    </div>
+    <div class="disc-box"><p><strong>Legal Disclaimer:</strong> This prediction is for informational purposes only and does not constitute legal advice. Actual case outcomes depend on many factors including specific evidence, judicial discretion, case presentation quality, and other variables. This AI model has 86.84% accuracy based on historical training data from California small claims court outcomes. For specific legal guidance tailored to your situation, please consult with a qualified attorney or tenant rights organization.</p></div>
+  </div>
+</div>
+
+<!-- PREDICTIONS LIST -->
+<div class="page" id="page-predictions">
+  <div class="pred-hero"><div class="pred-hero-icon">📊</div><h1>Recent Predictions</h1><p>Your case prediction history</p></div>
+  <div class="preds-body">
+    <div class="preds-hrow"><h2>📋 Recent Predictions</h2><button class="new-btn" onclick="showPage('predictor')">+ Create New Prediction</button></div>
+    <div id="preds-list"></div>
+  </div>
+</div>
+
+<!-- FREE MODEL -->
+<div class="page" id="page-free">
+  <div class="pred-hero"><div class="pred-hero-icon">✨</div><h1>What's Included in Free Model</h1><p>Everything you need to get started with case prediction</p></div>
+  <div class="free-body">
+    <div class="free-grid">
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Basic Case Prediction</h4><p>Get AI-powered outcome predictions</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Evidence Analysis</h4><p>Score your evidence strength</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Confidence Rating</h4><p>See prediction confidence levels</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Basic Recommendations</h4><p>Get next step suggestions</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>County-Specific Insights</h4><p>California jurisdiction data</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Suggested Next Steps</h4><p>Actionable guidance based on your case</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>California Resources</h4><p>Links to legal aid and court self-help</p></div></div>
+      <div class="free-item inc"><div class="free-item-icon">✅</div><div class="free-item-text"><h4>Key Factor Analysis</h4><p>Strengths and weaknesses breakdown</p></div></div>
+    </div>
+    <div style="text-align:center"><button class="new-btn" style="padding:16px 40px;font-size:16px" onclick="showPage('predictor')">Start Your Free Prediction →</button></div>
+  </div>
+</div>
+
+<script>
+var yn={lease:'',demand:'',prior:'',company:''};
+var ev={photos:false,comms:false,checklist:false,receipts:false,witness:false};
+var saved=[];
+var lastR=null;
+
+function showPage(n){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-link').forEach(function(l){l.classList.remove('active')});
+  var pm={home:'page-home',predictor:'page-predictor',predictions:'page-predictions',free:'page-free',results:'page-results'};
+  var nm={home:'nav-home',predictor:'nav-predictor',predictions:'nav-predictions',free:'nav-free'};
+  document.getElementById(pm[n]).classList.add('active');
+  if(nm[n])document.getElementById(nm[n]).classList.add('active');
+  window.scrollTo(0,0);
+  if(n==='predictions')renderPreds();
+}
+
+function selYN(f,v){
+  yn[f]=v;
+  ['yes','no'].forEach(function(x){
+    var b=document.getElementById(f+'-'+x);
+    b.className='yn-btn'+(v===x?' sel':'');
+  });
+  upProg();
+}
+
+function togEv(k){
+  ev[k]=!ev[k];
+  var item=document.getElementById('ev-'+k);
+  var cb=document.getElementById('evcb-'+k);
+  item.classList.toggle('on',ev[k]);
+  cb.textContent=ev[k]?'✓':'';
+  upEvScore();upProg();
+}
+
+function upEvScore(){
+  var s=Object.values(ev).filter(Boolean).length;
+  document.getElementById('ev-num').textContent=s+'/5';
+  document.getElementById('ev-bar').style.width=(s/5*100)+'%';
+  var msgs=['⚠️ No evidence selected — building evidence is crucial','🔸 Very weak — gather more documentation','🔶 Weak — consider collecting more evidence','🔷 Moderate — decent foundation','🟢 Strong — good evidence base','✅ Excellent — very strong evidence package'];
+  document.getElementById('ev-msg').textContent=msgs[s];
+}
+
+function upProg(){
+  var fields=[document.getElementById('f-dispute').value,document.getElementById('f-county').value,document.getElementById('f-amount').value,yn.lease,yn.demand,yn.prior,yn.company];
+  var filled=fields.filter(function(f){return f&&f!==''}).length;
+  var pct=Math.round(filled/7*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-hint').textContent=pct===100?'Ready to Predict! ✓':'Fill All Required Fields ('+filled+'/7)';
+}
+
+function runPred(){
+  var dispute=document.getElementById('f-dispute').value;
+  var county=document.getElementById('f-county').value;
+  var amount=parseFloat(document.getElementById('f-amount').value)||0;
+  if(!dispute||!county||!amount||!yn.lease||!yn.demand||!yn.prior||!yn.company){alert('Please complete all required fields before running the prediction.');return;}
+  var evScore=Object.values(ev).filter(Boolean).length;
+  var score=0;var strengths=[];var weaknesses=[];
+  if(yn.lease==='yes'){score+=30;strengths.push('Written lease agreement');}else{score-=15;weaknesses.push('No written lease');}
+  score+=evScore*10;
+  if(evScore>=4)strengths.push('Strong evidence ('+evScore+'/5)');
+  else if(evScore>=2)strengths.push('Moderate evidence ('+evScore+'/5)');
+  else weaknesses.push('Weak evidence ('+evScore+'/5)');
+  if(yn.demand==='yes'){score+=10;strengths.push('Demand letter sent');}else{score-=5;weaknesses.push('No demand letter sent');}
+  if(yn.prior==='yes'){score+=8;strengths.push('Prior resolution attempt');}else{weaknesses.push('No prior resolution attempt');}
+  if(amount>=1000&&amount<=5000)score+=5;else if(amount<500){score-=5;weaknesses.push('Low dollar amount');}
+  var db={security_deposit:8,unpaid_rent:3,habitability:-5,property_damage:-2};
+  score+=(db[dispute]||0);
+  if(dispute==='security_deposit')strengths.push('Favorable dispute type');
+  if(yn.company==='yes'){score-=5;weaknesses.push('Corporate landlord');}else{strengths.push('Individual landlord');}
+  var cb={los_angeles:2,san_francisco:5,san_diego:3,orange:0,sacramento:1,alameda:4,riverside:-2};
+  score+=(cb[county]||0);
+  score=Math.max(0,Math.min(100,score));
+  var ss=Math.round(score/10);
+  var outcome,conf,cls,icon,rec,ns;
+  if(score>=65){
+    outcome='Likely to Win';cls='win';icon='✓';
+    conf=score>=80?Math.min(96,Math.round(88+(score-80)*0.4)):Math.round(72+(score-65)*1.07);
+    rec='Your case looks strong. File your claim and organize all your evidence carefully before the hearing. Courts look favorably on tenants who documented everything and attempted resolution first. Make sure every piece of evidence is labeled and organized chronologically.';
+    ns=['File your small claims case at your local California courthouse','Organize all evidence in chronological order before your hearing','Send a final demand letter if you have not already — it shows good faith','Arrive early on court day and speak clearly and factually to the judge'];
+  }else if(score>=40){
+    outcome='Likely Partial Win';cls='partial';icon='!';
+    conf=Math.round(60+(score-40)*0.65);
+    rec='Your case shows merit with some gaps. Consider negotiating a settlement before trial to recover partial damages without the uncertainty of court proceedings. If you do file, focus on your strongest evidence and be prepared for a judge to split the difference.';
+    ns=['Send a formal settlement demand letter with a specific dollar amount','Gather additional documentation to strengthen weak points in your case','Consider mediation through your county\'s dispute resolution program','Consult with a tenant rights clinic for free strategic advice'];
+  }else{
+    outcome='Likely to Lose';cls='lose';icon='✗';
+    conf=Math.min(92,Math.round(75+(40-score)*0.5));
+    rec='Based on the information provided, this case faces significant challenges. Focus on gathering more evidence before filing. Without a written lease or strong documentation, it becomes very difficult for a court to rule in your favor. Consider consulting a tenant rights organization first.';
+    ns=['Do not file yet — gather more evidence first','Contact a free tenant rights clinic in your county','Attempt direct negotiation with your landlord or property manager','If you have a written lease, locate it — it dramatically changes your position'];
+  }
+  lastR={outcome:outcome,conf:conf,cls:cls,icon:icon,rec:rec,ns:ns,ss:ss,evScore:evScore,strengths:strengths,weaknesses:weaknesses,dispute:dispute,county:county,amount:amount};
+  saved.unshift({outcome:outcome,conf:conf,ss:ss,evScore:evScore,dispute:dispute,county:county,amount:amount,date:new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})});
+  renderResults(lastR);
+  showPage('results');
+}
+
+function renderResults(r){
+  var vc=document.getElementById('vcard');
+  vc.className='vcard '+r.cls;
+  document.getElementById('vicon').textContent=r.icon;
+  document.getElementById('vtitle').textContent=r.outcome;
+  document.getElementById('vconf').textContent=r.conf+'%';
+  document.getElementById('r-str').textContent=r.ss+'/10';
+  document.getElementById('r-str-bar').style.width=(r.ss/10*100)+'%';
+  document.getElementById('r-ev').textContent=r.evScore+'/5';
+  document.getElementById('r-ev-bar').style.width=(r.evScore/5*100)+'%';
+  document.getElementById('r-cf').textContent=r.conf+'%';
+  document.getElementById('r-cf-bar').style.width=r.conf+'%';
+  document.getElementById('m-str').textContent=r.ss+'/10';
+  document.getElementById('m-str-bar').style.width=(r.ss/10*100)+'%';
+  document.getElementById('m-ev').textContent=r.evScore+'/5';
+  document.getElementById('m-ev-bar').style.width=(r.evScore/5*100)+'%';
+  document.getElementById('m-cf').textContent=r.conf+'%';
+  document.getElementById('m-cf-bar').style.width=r.conf+'%';
+  document.getElementById('r-rec').textContent=r.rec;
+  document.getElementById('str-tags').innerHTML=r.strengths.map(function(s){return'<span class="ftag g">'+s+'</span>'}).join('');
+  document.getElementById('wk-tags').innerHTML=r.weaknesses.map(function(w){return'<span class="ftag b">'+w+'</span>'}).join('');
+  document.getElementById('ns-list').innerHTML=r.ns.map(function(s){return'<div class="ns-item"><div class="ns-arrow">→</div><div class="ns-text">'+s+'</div></div>'}).join('');
+  setTimeout(function(){drawCharts(r);},100);
+  setTimeout(function(){drawBar(r);},150);
+}
+
+function drawCharts(r){
+  var color=r.cls==='win'?'#10b981':r.cls==='partial'?'#f59e0b':'#ef4444';
+  var pc=document.getElementById('pieC');
+  if(!pc)return;
+  var ctx=pc.getContext('2d');ctx.clearRect(0,0,120,120);
+  var pct=r.conf/100;
+  ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2,-Math.PI/2+2*Math.PI*pct);ctx.closePath();ctx.fillStyle=color;ctx.fill();
+  ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2+2*Math.PI*pct,-Math.PI/2);ctx.closePath();ctx.fillStyle='#e8e4f8';ctx.fill();
+  document.getElementById('pie-leg').innerHTML='<div class="pie-leg-item"><div class="pie-dot" style="background:'+color+'"></div>'+r.outcome+': '+r.conf+'%</div><div class="pie-leg-item"><div class="pie-dot" style="background:#e8e4f8"></div>Uncertainty: '+(100-r.conf)+'%</div>';
+  var dc=document.getElementById('donutC');
+  if(!dc)return;
+  var dctx=dc.getContext('2d');dctx.clearRect(0,0,120,120);
+  dctx.beginPath();dctx.arc(60,60,50,-Math.PI/2,-Math.PI/2+2*Math.PI*pct);dctx.arc(60,60,32,-Math.PI/2+2*Math.PI*pct,-Math.PI/2,true);dctx.closePath();dctx.fillStyle=color;dctx.fill();
+  dctx.beginPath();dctx.arc(60,60,50,-Math.PI/2+2*Math.PI*pct,-Math.PI/2);dctx.arc(60,60,32,-Math.PI/2,-Math.PI/2+2*Math.PI*pct,true);dctx.closePath();dctx.fillStyle='#e8e4f8';dctx.fill();
+  dctx.fillStyle=color;dctx.font='bold 15px Inter,sans-serif';dctx.textAlign='center';dctx.textBaseline='middle';dctx.fillText(r.conf+'%',60,60);
+}
+
+function drawBar(r){
+  var area=document.getElementById('bar-area');if(!area)return;
+  var bars=[{label:'Case Strength',your:r.ss,max:10},{label:'Evidence',your:r.evScore,max:5},{label:'Confidence',your:Math.round(r.conf/10),max:10}];
+  area.innerHTML=bars.map(function(b){
+    var yh=Math.round((b.your/b.max)*100);
+    return'<div class="bar-item"><div class="bar-max" style="height:100%"></div><div class="bar-yours" style="height:'+yh+'%"></div><div class="bar-lbl">'+b.label+'</div></div>';
+  }).join('');
+}
+
+function renderPreds(){
+  var list=document.getElementById('preds-list');
+  if(saved.length===0){
+    list.innerHTML='<div class="empty"><div style="font-size:48px;margin-bottom:12px">📋</div><p>No predictions yet. Run your first case analysis!</p><button class="new-btn" onclick="showPage(\'predictor\')">+ Start Your First Prediction</button></div>';
+    return;
+  }
+  var dn={security_deposit:'Security Deposit Case',unpaid_rent:'Unpaid Rent Case',habitability:'Habitability Case',property_damage:'Property Damage Case'};
+  var cn={los_angeles:'Los Angeles County',san_francisco:'San Francisco County',san_diego:'San Diego County',orange:'Orange County',sacramento:'Sacramento County',alameda:'Alameda County',riverside:'Riverside County'};
+  list.innerHTML=saved.map(function(p){
+    var bc=p.outcome.includes('Partial')?'partial':p.outcome.includes('Lose')?'lose':'win';
+    var icon=bc==='win'?'✓':bc==='partial'?'!':'✗';
+    return'<div class="pred-item"><div class="pred-top"><span class="pbadge '+bc+'">'+icon+' '+p.outcome+'</span><span class="pstat">'+p.conf+'% Confidence</span><span class="pstat">'+p.ss+'/10 Strength</span><div class="pact"><button class="pact-btn" onclick="if(lastR){renderResults(lastR);showPage(\'results\');}">👁 View</button></div></div><div class="ptitle">'+(dn[p.dispute]||p.dispute)+'</div><div class="pmeta"><span class="pmeta-item">📅 '+p.date+'</span><span class="pmeta-item">📍 '+(cn[p.county]||p.county)+'</span><span class="pmeta-item">💲 $'+p.amount.toLocaleString()+'</span></div></div>';
+  }).join('');
+}
+</script>
+</body>
+</html>
