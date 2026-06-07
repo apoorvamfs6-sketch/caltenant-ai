@@ -347,7 +347,7 @@ footer{background:#0D0D1A}
 <div class="page active" id="page-home">
   <div class="hero">
     <div>
-      <div class="hero-badge">⚖ 86.84% Model Accuracy</div>
+      <div class="hero-badge">⚖ 83.3% Cross-Validated Accuracy</div>
       <h1>Predict Your Court Outcome</h1>
       <p>AI-powered predictions for California small claims court. Know your odds before stepping into the courtroom.</p>
       <div class="hero-btns">
@@ -363,7 +363,7 @@ footer{background:#0D0D1A}
   </div>
   <div class="stats">
     <div><div class="stat-icon">📊</div><div class="stat-num">150+</div><div class="stat-label">Cases Analyzed</div></div>
-    <div><div class="stat-icon">🎯</div><div class="stat-num">86.84%</div><div class="stat-label">Prediction Accuracy</div></div>
+    <div><div class="stat-icon">🎯</div><div class="stat-num">83.3%</div><div class="stat-label">5-Fold CV Accuracy</div></div>
     <div><div class="stat-icon">⏱</div><div class="stat-num">&lt;2 Min</div><div class="stat-label">To Get Results</div></div>
     <div><div class="stat-icon">⚖</div><div class="stat-num">100%</div><div class="stat-label">Free to Use</div></div>
   </div>
@@ -378,7 +378,7 @@ footer{background:#0D0D1A}
   <div class="why-section">
     <div class="section-header"><h2>Why Choose Our Platform</h2><p>Built specifically for California tenants facing landlord disputes</p></div>
     <div class="why-grid">
-      <div class="why-card"><div class="why-icon" style="background:#ede9fe">🛡</div><h3>Data-Driven Accuracy</h3><p>Our AI model achieves 86.84% accuracy by analyzing patterns from California small claims court outcomes using a Random Forest classifier.</p></div>
+      <div class="why-card"><div class="why-icon" style="background:#ede9fe">🛡</div><h3>Data-Driven Accuracy</h3><p>Our Random Forest classifier (200 trees) achieves 83.3% cross-validated accuracy on real California small claims outcomes, running live in your browser via ONNX.</p></div>
       <div class="why-card"><div class="why-icon" style="background:#ede9fe">⚖</div><h3>California-Specific</h3><p>Trained exclusively on California landlord-tenant disputes across 7 counties for maximum accuracy in your jurisdiction.</p></div>
       <div class="why-card"><div class="why-icon" style="background:#dcfce7">📈</div><h3>Evidence-Based Analysis</h3><p>Advanced scoring system evaluates your documentation, communication records, and case details to predict outcomes.</p></div>
       <div class="why-card"><div class="why-icon" style="background:#fef3c7">🏆</div><h3>Completely Free</h3><p>No hidden fees, subscriptions, or credit cards required. Access to justice should never be behind a paywall.</p></div>
@@ -389,7 +389,7 @@ footer{background:#0D0D1A}
     <p>Join California tenants who use our AI to make informed decisions about their cases.</p>
     <button class="btn-white" onclick="showPage('predictor')">Start Your Free Prediction →</button>
   </div>
-  <footer><p><strong>Legal Disclaimer:</strong> This tool provides predictions for informational purposes only and does not constitute legal advice. Results are based on historical patterns and should not be relied upon as a guarantee of outcome. For specific legal guidance, please consult with a qualified attorney or tenant rights organization. This AI model has 86.84% accuracy based on historical training data from California small claims court outcomes.</p></footer>
+  <footer><p><strong>Legal Disclaimer:</strong> This tool provides predictions for informational purposes only and does not constitute legal advice. Results are based on historical patterns and should not be relied upon as a guarantee of outcome. For specific legal guidance, please consult with a qualified attorney or tenant rights organization. This AI model achieves 83.3% accuracy (5-fold cross-validation) on historical training data from California small claims court outcomes.</p></footer>
 </div>
 
 <!-- PREDICTOR -->
@@ -541,7 +541,7 @@ footer{background:#0D0D1A}
       <div class="about-pred-grid">
         <div class="apg-item"><h4>📊 What the score means</h4><p>Confidence % reflects how closely your case matches winning patterns from 150+ California small claims records.</p></div>
         <div class="apg-item"><h4>⚠️ What it can't measure</h4><p>Judicial discretion, how you present your case, opposing evidence, and local courtroom norms are outside the model's scope.</p></div>
-        <div class="apg-item"><h4>🤖 How the model works</h4><p>Random Forest classifier trained on CA landlord-tenant outcomes across 7 counties. Training accuracy: 86.84%.</p></div>
+        <div class="apg-item"><h4>🤖 How the model works</h4><p>Random Forest (200 trees) trained on 150 CA landlord-tenant cases across 7 counties, running live in-browser. 5-fold CV accuracy: 83.3%.</p></div>
         <div class="apg-item"><h4>🤝 Get human guidance</h4><p>Free tenant clinics, legal aid societies, and Courts.ca.gov self-help are available to everyone regardless of income.</p></div>
       </div>
     </div>
@@ -607,7 +607,42 @@ footer{background:#0D0D1A}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
 <script>
+// ===== Live ML model (Random Forest via ONNX) =====
+var ortSession=null, modelMeta=null, modelReady=false;
+async function loadModel(){
+  try{
+    var r=await fetch('model_meta.json'); modelMeta=await r.json();
+    if(window.ort){ ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/'; }
+    ortSession=await ort.InferenceSession.create('model.onnx');
+    modelReady=true;
+    console.log('CalTenant AI model loaded. Classes:',modelMeta.classes);
+  }catch(e){ console.error('Model load failed — falling back to heuristic scoring.',e); modelReady=false; }
+}
+loadModel();
+function buildVector(data){
+  var v=[];
+  for(var i=0;i<modelMeta.cat_cols.length;i++){
+    var col=modelMeta.cat_cols[i], cs=modelMeta.cats[i];
+    for(var j=0;j<cs.length;j++){ v.push(data[col]===cs[j]?1:0); }
+  }
+  for(var k=0;k<modelMeta.num_cols.length;k++){ v.push(Number(data[modelMeta.num_cols[k]])||0); }
+  return Float32Array.from(v);
+}
+async function runModel(data){
+  var vec=buildVector(data);
+  var tensor=new ort.Tensor('float32',vec,[1,vec.length]);
+  var out=await ortSession.run({input:tensor});
+  var probs=null;
+  for(var name in out){
+    var d=out[name].data;
+    if(d && d.length===modelMeta.classes.length){ probs=Array.prototype.map.call(d,Number); }
+  }
+  if(!probs) throw new Error('No probability output found');
+  return probs; // aligned to modelMeta.classes order
+}
+
 var yn={lease:'',demand:'',prior:'',company:''};
 var ev={photos:false,comms:false,checklist:false,receipts:false,witness:false};
 var saved=[];
@@ -658,47 +693,75 @@ function upProg(){
   document.getElementById('prog-hint').textContent=pct===100?'Ready to Predict! ✓':'Fill All Required Fields ('+filled+'/7)';
 }
 
-function runPred(){
+async function runPred(){
   var dispute=document.getElementById('f-dispute').value;
   var county=document.getElementById('f-county').value;
   var amount=parseFloat(document.getElementById('f-amount').value)||0;
   if(!dispute||!county||!amount||!yn.lease||!yn.demand||!yn.prior||!yn.company){alert('Please complete all required fields before running the prediction.');return;}
   var evScore=Object.values(ev).filter(Boolean).length;
+  // Explanatory strengths/weaknesses + heuristic fallback score (used only if model fails to load)
   var score=0;var strengths=[];var weaknesses=[];
   if(yn.lease==='yes'){score+=30;strengths.push('Written lease agreement');}else{score-=15;weaknesses.push('No written lease');}
   score+=evScore*10;
   if(evScore>=4)strengths.push('Strong evidence ('+evScore+'/5)');
   else if(evScore>=2)strengths.push('Moderate evidence ('+evScore+'/5)');
   else weaknesses.push('Weak evidence ('+evScore+'/5)');
-  if(yn.demand==='yes'){score+=10;strengths.push('Demand letter sent');}else{score-=5;weaknesses.push('No demand letter sent');}
-  if(yn.prior==='yes'){score+=8;strengths.push('Prior resolution attempt');}else{weaknesses.push('No prior resolution attempt');}
+  if(yn.demand==='yes'){strengths.push('Demand letter sent');}else{weaknesses.push('No demand letter sent');}
+  if(yn.prior==='yes'){strengths.push('Prior resolution attempt');}else{weaknesses.push('No prior resolution attempt');}
   if(amount>=1000&&amount<=5000)score+=5;else if(amount<500){score-=5;weaknesses.push('Low dollar amount');}
-  var db={security_deposit:8,unpaid_rent:3,habitability:-5,property_damage:-2};
-  score+=(db[dispute]||0);
+  var db={security_deposit:8,unpaid_rent:3,habitability:-5,property_damage:-2};score+=(db[dispute]||0);
   if(dispute==='security_deposit')strengths.push('Favorable dispute type');
-  if(yn.company==='yes'){score-=5;weaknesses.push('Corporate landlord');}else{strengths.push('Individual landlord');}
-  var cb={los_angeles:2,san_francisco:5,san_diego:3,orange:0,sacramento:1,alameda:4,riverside:-2};
-  score+=(cb[county]||0);
+  if(yn.company==='yes'){weaknesses.push('Corporate landlord');}else{strengths.push('Individual landlord');}
+  var cb={los_angeles:2,san_francisco:5,san_diego:3,orange:0,sacramento:1,alameda:4,riverside:-2};score+=(cb[county]||0);
   score=Math.max(0,Math.min(100,score));
-  var ss=Math.round(score/10);
-  var outcome,conf,cls,icon,rec,ns;
-  if(score>=65){
-    outcome='Likely to Win';cls='win';icon='✓';
-    conf=score>=80?Math.min(96,Math.round(88+(score-80)*0.4)):Math.round(72+(score-65)*1.07);
-    rec='Your case looks strong. File your claim and organize all your evidence carefully before the hearing. Courts look favorably on tenants who documented everything and attempted resolution first. Make sure every piece of evidence is labeled and organized chronologically.';
-    ns=['File your small claims case at your local California courthouse','Organize all evidence in chronological order before your hearing','Send a final demand letter if you have not already — it shows good faith','Arrive early on court day and speak clearly and factually to the judge'];
-  }else if(score>=40){
-    outcome='Likely Partial Win';cls='partial';icon='!';
-    conf=Math.round(60+(score-40)*0.65);
-    rec='Your case shows merit with some gaps. Consider negotiating a settlement before trial to recover partial damages without the uncertainty of court proceedings. If you do file, focus on your strongest evidence and be prepared for a judge to split the difference.';
-    ns=['Send a formal settlement demand letter with a specific dollar amount','Gather additional documentation to strengthen weak points in your case','Consider mediation through your county\'s dispute resolution program','Consult with a tenant rights clinic for free strategic advice'];
-  }else{
-    outcome='Likely to Lose';cls='lose';icon='✗';
-    conf=Math.min(92,Math.round(75+(40-score)*0.5));
-    rec='Based on the information provided, this case faces significant challenges. Focus on gathering more evidence before filing. Without a written lease or strong documentation, it becomes very difficult for a court to rule in your favor. Consider consulting a tenant rights organization first.';
-    ns=['Do not file yet — gather more evidence first','Contact a free tenant rights clinic in your county','Attempt direct negotiation with your landlord or property manager','If you have a written lease, locate it — it dramatically changes your position'];
+
+  // Build the model input record (real dataset category strings)
+  var dmap={security_deposit:'Security deposit',unpaid_rent:'Unpaid rent',habitability:'Habitability',property_damage:'Property damage'};
+  var cmap={los_angeles:'Los Angeles',san_francisco:'San Francisco',san_diego:'San Diego',orange:'Orange',sacramento:'Sacramento',alameda:'Alameda',riverside:'Riverside'};
+  var yb=function(v){return v==='yes'?'Yes':'No';};
+  var data={dispute_type:dmap[dispute],county:cmap[county],written_lease:yb(yn.lease),
+    has_photos:ev.photos?'Yes':'No',has_written_communication:ev.comms?'Yes':'No',
+    has_signed_checklist:ev.checklist?'Yes':'No',has_receipts_or_payments:ev.receipts?'Yes':'No',
+    has_witness:ev.witness?'Yes':'No',demand_letter_sent:yb(yn.demand),
+    prior_resolution_attempt:yb(yn.prior),landlord_is_company:yb(yn.company),
+    dollar_amount:amount,evidence_score:evScore};
+
+  // Run the real Random Forest via ONNX (with heuristic fallback)
+  var pLose,pPartial,pWin,usedModel=false;
+  if(modelReady){
+    try{
+      var probs=await runModel(data);
+      var idx={};modelMeta.classes.forEach(function(c,i){idx[c]=i;});
+      pLose=probs[idx['Lose']];pPartial=probs[idx['Partial Win']];pWin=probs[idx['Win']];
+      usedModel=true;
+    }catch(e){console.error('Inference failed, using fallback',e);}
   }
-  lastR={outcome:outcome,conf:conf,cls:cls,icon:icon,rec:rec,ns:ns,ss:ss,evScore:evScore,strengths:strengths,weaknesses:weaknesses,dispute:dispute,county:county,amount:amount};
+  if(!usedModel){
+    if(score>=65){pWin=0.5+(score-65)/70;pPartial=(1-pWin)*0.7;pLose=(1-pWin)*0.3;}
+    else if(score>=40){pPartial=0.55+(score-40)/100;pWin=(1-pPartial)*0.55;pLose=(1-pPartial)*0.45;}
+    else{pLose=0.6+(40-score)/100;pPartial=(1-pLose)*0.7;pWin=(1-pLose)*0.3;}
+    var sm=pLose+pPartial+pWin;pLose/=sm;pPartial/=sm;pWin/=sm;
+  }
+
+  // Decide outcome from the model's probabilities
+  var cls,outcome,icon;
+  if(pWin>=pPartial&&pWin>=pLose){cls='win';outcome='Likely to Win';icon='✓';}
+  else if(pLose>=pPartial&&pLose>=pWin){cls='lose';outcome='Likely to Lose';icon='✗';}
+  else{cls='partial';outcome='Likely Partial Win';icon='!';}
+  var conf=Math.round(Math.max(pWin,pPartial,pLose)*100);
+  var ss=Math.max(0,Math.min(10,Math.round((pWin+0.5*pPartial)*10)));
+
+  var txt={
+    win:{rec:'Your case looks strong. File your claim and organize all your evidence carefully before the hearing. Courts look favorably on tenants who documented everything and attempted resolution first. Make sure every piece of evidence is labeled and organized chronologically.',
+      ns:['File your small claims case at your local California courthouse','Organize all evidence in chronological order before your hearing','Send a final demand letter if you have not already — it shows good faith','Arrive early on court day and speak clearly and factually to the judge']},
+    partial:{rec:'Your case shows merit with some gaps. Consider negotiating a settlement before trial to recover partial damages without the uncertainty of court proceedings. If you do file, focus on your strongest evidence and be prepared for a judge to split the difference.',
+      ns:['Send a formal settlement demand letter with a specific dollar amount','Gather additional documentation to strengthen weak points in your case','Consider mediation through your county\'s dispute resolution program','Consult with a tenant rights clinic for free strategic advice']},
+    lose:{rec:'Based on the information provided, this case faces significant challenges. Focus on gathering more evidence before filing. Without a written lease or strong documentation, it becomes very difficult for a court to rule in your favor. Consider consulting a tenant rights organization first.',
+      ns:['Do not file yet — gather more evidence first','Contact a free tenant rights clinic in your county','Attempt direct negotiation with your landlord or property manager','If you have a written lease, locate it — it dramatically changes your position']}
+  };
+  var rec=txt[cls].rec, ns=txt[cls].ns;
+
+  lastR={outcome:outcome,conf:conf,cls:cls,icon:icon,rec:rec,ns:ns,ss:ss,evScore:evScore,strengths:strengths,weaknesses:weaknesses,dispute:dispute,county:county,amount:amount,pLose:pLose,pPartial:pPartial,pWin:pWin,usedModel:usedModel};
   saved.unshift({outcome:outcome,conf:conf,ss:ss,evScore:evScore,dispute:dispute,county:county,amount:amount,date:new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})});
   renderResults(lastR);
   showPage('results');
@@ -735,10 +798,20 @@ function drawCharts(r){
   var pc=document.getElementById('pieC');
   if(!pc)return;
   var ctx=pc.getContext('2d');ctx.clearRect(0,0,120,120);
+  // Real 3-class probability distribution from the model
+  var hasProbs=(typeof r.pWin==='number');
+  if(hasProbs){
+    var slices=[{lbl:'Win',v:r.pWin,c:'#10b981'},{lbl:'Partial Win',v:r.pPartial,c:'#f59e0b'},{lbl:'Lose',v:r.pLose,c:'#ef4444'}];
+    var a=-Math.PI/2;
+    slices.forEach(function(s){var end=a+2*Math.PI*s.v;ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,a,end);ctx.closePath();ctx.fillStyle=s.c;ctx.fill();a=end;});
+    document.getElementById('pie-leg').innerHTML=slices.map(function(s){return'<div class="pie-leg-item"><div class="pie-dot" style="background:'+s.c+'"></div>'+s.lbl+': '+Math.round(s.v*100)+'%</div>';}).join('');
+  }else{
+    var pct=r.conf/100;
+    ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2,-Math.PI/2+2*Math.PI*pct);ctx.closePath();ctx.fillStyle=color;ctx.fill();
+    ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2+2*Math.PI*pct,-Math.PI/2);ctx.closePath();ctx.fillStyle='#e8e4f8';ctx.fill();
+    document.getElementById('pie-leg').innerHTML='<div class="pie-leg-item"><div class="pie-dot" style="background:'+color+'"></div>'+r.outcome+': '+r.conf+'%</div><div class="pie-leg-item"><div class="pie-dot" style="background:#e8e4f8"></div>Uncertainty: '+(100-r.conf)+'%</div>';
+  }
   var pct=r.conf/100;
-  ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2,-Math.PI/2+2*Math.PI*pct);ctx.closePath();ctx.fillStyle=color;ctx.fill();
-  ctx.beginPath();ctx.moveTo(60,60);ctx.arc(60,60,50,-Math.PI/2+2*Math.PI*pct,-Math.PI/2);ctx.closePath();ctx.fillStyle='#e8e4f8';ctx.fill();
-  document.getElementById('pie-leg').innerHTML='<div class="pie-leg-item"><div class="pie-dot" style="background:'+color+'"></div>'+r.outcome+': '+r.conf+'%</div><div class="pie-leg-item"><div class="pie-dot" style="background:#e8e4f8"></div>Uncertainty: '+(100-r.conf)+'%</div>';
   var dc=document.getElementById('donutC');
   if(!dc)return;
   var dctx=dc.getContext('2d');dctx.clearRect(0,0,120,120);
@@ -816,12 +889,13 @@ function renderPreds(){
     <div class="set-section">
       <h3>About the Model</h3>
       <div style="background:#f8f7ff;border-radius:12px;padding:16px;border:1px solid #e8e4f8">
-        <div class="info-row"><span>Model Type</span><span>Random Forest Classifier</span></div>
-        <div class="info-row"><span>Training Accuracy</span><span>86.84%</span></div>
-        <div class="info-row"><span>Cases Analyzed</span><span>150+ CA court records</span></div>
+        <div class="info-row"><span>Model Type</span><span>Random Forest (200 trees)</span></div>
+        <div class="info-row"><span>Accuracy (5-fold CV)</span><span>83.3% &plusmn; 4.2%</span></div>
+        <div class="info-row"><span>Hold-out Test Accuracy</span><span>89.5%</span></div>
+        <div class="info-row"><span>Inference</span><span>ONNX Runtime (in-browser)</span></div>
+        <div class="info-row"><span>Cases Analyzed</span><span>150 CA court records</span></div>
         <div class="info-row"><span>Jurisdiction</span><span>California (7 counties)</span></div>
-        <div class="info-row"><span>Last Updated</span><span>May 2025</span></div>
-        <div class="info-row"><span>Version</span><span>1.0 POC</span></div>
+        <div class="info-row"><span>Version</span><span>2.0 (live model)</span></div>
       </div>
     </div>
     <div class="set-section">

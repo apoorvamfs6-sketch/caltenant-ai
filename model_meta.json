@@ -1,0 +1,110 @@
+{
+  "cat_cols": [
+    "dispute_type",
+    "county",
+    "written_lease",
+    "has_photos",
+    "has_written_communication",
+    "has_signed_checklist",
+    "has_receipts_or_payments",
+    "has_witness",
+    "demand_letter_sent",
+    "prior_resolution_attempt",
+    "landlord_is_company"
+  ],
+  "cats": [
+    [
+      "Habitability",
+      "Property damage",
+      "Security deposit",
+      "Unpaid rent"
+    ],
+    [
+      "Alameda",
+      "Los Angeles",
+      "Orange",
+      "Riverside",
+      "Sacramento",
+      "San Diego",
+      "San Francisco"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ],
+    [
+      "No",
+      "Yes"
+    ]
+  ],
+  "num_cols": [
+    "dollar_amount",
+    "evidence_score"
+  ],
+  "feat_order": [
+    "dispute_type_Habitability",
+    "dispute_type_Property damage",
+    "dispute_type_Security deposit",
+    "dispute_type_Unpaid rent",
+    "county_Alameda",
+    "county_Los Angeles",
+    "county_Orange",
+    "county_Riverside",
+    "county_Sacramento",
+    "county_San Diego",
+    "county_San Francisco",
+    "written_lease_No",
+    "written_lease_Yes",
+    "has_photos_No",
+    "has_photos_Yes",
+    "has_written_communication_No",
+    "has_written_communication_Yes",
+    "has_signed_checklist_No",
+    "has_signed_checklist_Yes",
+    "has_receipts_or_payments_No",
+    "has_receipts_or_payments_Yes",
+    "has_witness_No",
+    "has_witness_Yes",
+    "demand_letter_sent_No",
+    "demand_letter_sent_Yes",
+    "prior_resolution_attempt_No",
+    "prior_resolution_attempt_Yes",
+    "landlord_is_company_No",
+    "landlord_is_company_Yes",
+    "dollar_amount",
+    "evidence_score"
+  ],
+  "classes": [
+    "Lose",
+    "Partial Win",
+    "Win"
+  ]
+}
